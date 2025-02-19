@@ -25,7 +25,7 @@ Ukoliko ne koristite Linux, potrebno je ručno učiniti sljedeće:
 - U varijablu okružja (engl. environment variable) `OPENAI_API_KEY` zapisati vaš OpenAI API ključ.
 - U direktoriju `server` pokrenuti `rethinkdb`.
 - U direktoriju `server` pokrenutu `node mmo.js`.
-- U izvorišnom direktoriju pokrenuti `python3 server/openai-server.py`
+- U direktoriju server` pokrenuti `python3 openai-server.py`
 
 Ako je sve bilo uspješno, igra je dostupna na adresi `localhost:5000` u web pregledniku.
 
