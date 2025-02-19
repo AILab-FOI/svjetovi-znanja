@@ -1,0 +1,52 @@
+2025-02-14T23:15:42.530Z : test connected to the game
+2025-02-14T23:15:43.456Z : test joined map-1
+2025-02-14T23:17:02.957Z : test disconnected from the game.
+2025-02-14T23:18:57.813Z : test connected to the game
+2025-02-14T23:18:59.133Z : test joined map-1
+2025-02-14T23:19:14.198Z : test disconnected from the game.
+2025-02-14T23:20:52.927Z : test connected to the game
+2025-02-14T23:20:53.925Z : test joined map-1
+2025-02-14T23:21:29.401Z : test disconnected from the game.
+2025-02-14T23:25:38.737Z : test connected to the game
+2025-02-14T23:25:39.720Z : test joined map-1
+2025-02-14T23:26:22.633Z : test disconnected from the game.
+2025-02-14T23:32:26.793Z : test connected to the game
+2025-02-14T23:32:27.757Z : test joined map-1
+2025-02-14T23:33:50.632Z : test disconnected from the game.
+2025-02-14T23:37:24.977Z : test connected to the game
+2025-02-14T23:37:24.985Z : test connected to the game
+2025-02-14T23:37:26.076Z : test joined map-1
+2025-02-14T23:37:55.653Z : test disconnected from the game.
+2025-02-14T23:38:27.901Z : test connected to the game
+2025-02-14T23:38:28.803Z : test joined map-1
+2025-02-14T23:39:11.522Z : test disconnected from the game.
+2025-02-14T23:39:40.902Z : test connected to the game
+2025-02-14T23:39:41.822Z : test joined map-1
+2025-02-14T23:40:03.133Z : test disconnected from the game.
+2025-02-14T23:40:40.942Z : test connected to the game
+2025-02-14T23:40:41.898Z : test joined map-1
+2025-02-14T23:41:25.857Z : test left map-1
+2025-02-14T23:41:25.858Z : test joined map-2
+2025-02-14T23:41:34.377Z : test left map-2
+2025-02-14T23:41:34.378Z : test joined map-1
+2025-02-14T23:41:56.637Z : test disconnected from the game.
+2025-02-14T23:43:59.884Z : bababa connected to the game
+2025-02-14T23:44:00.933Z : bababa joined map-2
+2025-02-14T23:44:05.397Z : bababa left map-2
+2025-02-14T23:44:05.397Z : bababa joined map-1
+2025-02-15T00:07:47.305Z : bababa disconnected from the game.
+2025-02-15T11:35:19.293Z : test connected to the game
+2025-02-15T11:35:20.442Z : test joined map-1
+2025-02-15T11:36:08.093Z : test left map-1
+2025-02-15T11:36:08.106Z : test joined map-2
+2025-02-15T11:36:10.775Z : test left map-2
+2025-02-15T11:36:10.776Z : test joined map-1
+2025-02-15T11:37:04.718Z : bababa connected to the game
+2025-02-15T11:37:05.695Z : bababa joined map-1
+2025-02-15T11:37:05.812Z : test transmitted its position to FBrm75ZQSie1WZYGAAAr
+2025-02-15T11:37:54.352Z : test disconnected from the game.
+2025-02-15T11:46:11.036Z : test connected to the game
+2025-02-15T11:46:12.085Z : test joined map-1
+2025-02-15T11:46:12.622Z : bababa transmitted its position to mYXoS8QBTJXHRlsAAAAs
+2025-02-15T11:46:53.842Z : test disconnected from the game.
+2025-02-15T11:47:10.602Z : bababa disconnected from the game.
