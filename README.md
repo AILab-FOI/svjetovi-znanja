@@ -31,6 +31,6 @@ Ako je sve bilo uspješno, igra je dostupna na adresi `localhost:5000` u web pre
 
 # Napomene o licenciranju
 
-Korištena grafika iz alata RPG Maker MV kao i programski kod koji je dio stroja igre licenciran je pod komercijalnom licencom. Za korištenje potrebno je kupiti [RPG Maker MV](https://www.rpgmakerweb.com/products/rpg-maker-mv) alat zajedno sa svim potrbnim dodacima.
+Korištena grafika, audio, video i sav ostali materijal iz alata RPG Maker MV kao i programski kod koji je dio stroja igre ili dodataka licenciran je pod komercijalnom licencom. Za korištenje potrebno je kupiti [RPG Maker MV](https://www.rpgmakerweb.com/products/rpg-maker-mv) alat zajedno sa svim potrbnim dodacima.
 
 
