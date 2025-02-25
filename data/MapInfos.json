@@ -1,8 +1,8 @@
 [
 null,
 {"id":1,"expanded":true,"name":"PustopoljinaZaborava","order":1,"parentId":0,"scrollX":584.8888888888889,"scrollY":314.6666666666667},
-{"id":2,"expanded":false,"name":"Luminaris","order":2,"parentId":0,"scrollX":577.7777777777778,"scrollY":314.6666666666667},
+{"id":2,"expanded":false,"name":"Luminaris","order":2,"parentId":0,"scrollX":542.2222222222222,"scrollY":387.55555555555554},
 {"id":3,"expanded":true,"name":"Aetheris","order":3,"parentId":0,"scrollX":584.8888888888889,"scrollY":314.6666666666667},
 {"id":4,"expanded":false,"name":"DvoranaMentorstva","order":4,"parentId":3,"scrollX":584.8888888888889,"scrollY":314.6666666666667},
-{"id":5,"expanded":false,"name":"KristalnaAkademija","order":5,"parentId":0,"scrollX":809,"scrollY":438}
+{"id":5,"expanded":false,"name":"KristalnaAkademija","order":5,"parentId":0,"scrollX":410.6666666666667,"scrollY":394.6666666666667}
 ]
