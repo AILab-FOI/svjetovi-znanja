@@ -148,7 +148,7 @@
 
   // --------------------------------------------------------------------------
   // 2) Plugin Commands for convenience
-  //    foi_new_agent <agentName> "INITIAL_PROMPT"
+  //    foi_new_agent <agentName> "INITIAL_PROMPT" OR foi_new_agent <agentName> <imageName> <imageNumber> "INITIAL_PROMPT"');
   //    foi_query_agent <agentName> "PROMPT"
   //    foi_delete_agent <agentName>
   // --------------------------------------------------------------------------
@@ -158,21 +158,41 @@
 
     const cmd = command.trim().toLowerCase();
     switch (cmd) {
-      case "foi_new_agent": {
-        if (args.length < 2) {
-          console.warn('Usage: foi_new_agent <agentName> "INITIAL_PROMPT"');
-          return;
-        }
-        const agentName = args[0];
-        let prompt = args.slice(1).join(" ");
-        // strip outer quotes if present
-        prompt = prompt.replace(/^"(.*)"$/, '$1');
-
-        window.foi_agent.new(agentName, prompt)
-          .catch(err => console.error("Failed to create agent:", err));
-        break;
+        case "foi_new_agent": {
+          if (args.length < 2) {
+              console.warn('Usage: foi_new_agent <agentName> "INITIAL_PROMPT" OR foi_new_agent <agentName> <imageName> <imageNumber> "INITIAL_PROMPT"');
+              return;
+          }
+      
+          const agentName = args[0];
+          let faceImage = 'Actor2';
+          let faceIndex = 2;
+          let promptStartIndex = 1;
+      
+          if (args.length > 2 && !isNaN(args[2])) {
+              faceImage = args[1];
+              faceIndex = parseInt(args[2], 10);
+              promptStartIndex = 3;
+          }
+      
+          if (!$gameSystem.foi_agents) {
+              $gameSystem.foi_agents = {};
+          }
+      
+          $gameSystem.foi_agents[agentName] = {
+              name: agentName,
+              faceImage: faceImage,
+              faceIndex: faceIndex,
+          };
+            
+          let prompt = args.slice(promptStartIndex).join(" ");
+          prompt = prompt.replace(/^"(.*)"$/, '$1');
+      
+          window.foi_agent.new(agentName, prompt)
+              .catch(err => console.error("Failed to create agent:", err));
+          break;
       }
-
+    
       case "foi_query_agent": {
         if (args.length < 2) {
           console.warn('Usage: foi_query_agent <agentName> "PROMPT"');
@@ -182,12 +202,29 @@
         let prompt = args.slice(1).join(" ");
         prompt = prompt.replace(/^"(.*)"$/, '$1');
 
+        if (prompt.includes("\\V")) {
+          var variableId = parseInt(prompt.match(/\d+/)[0]);
+          prompt = $gameVariables.value(variableId);
+        }
+    
         // we can't block in MV; we just log the result or store it in a variable
         window.foi_agent.ask(agentName, prompt)
           .then(response => {
             console.log(`[${agentName}] says: ${response}`);
-            // e.g. show in a message window:
-            // $gameMessage.add(response);
+
+            let npcData = $gameSystem.foi_agents?.[agentName];
+            
+            if (npcData) {
+              $gameMessage.setFaceImage(npcData.faceImage, npcData.faceIndex);
+              $gameMessage.add(`\\c[4]${npcData.name}:\\c[0]`);
+            }
+            
+            let maxLineLength = 40;
+            let responseLines = wrapText(response, maxLineLength);
+
+            responseLines.forEach(line => {
+                $gameMessage.add(line);
+            });
           })
           .catch(err => console.error("Failed to query agent:", err));
         break;
@@ -204,6 +241,27 @@
       }
     }
   };
+
+  function wrapText(text, maxLineLength) {
+    let words = text.split(" ");
+    let lines = [];
+    let currentLine = "";
+
+    words.forEach(word => {
+        if ((currentLine + word).length > maxLineLength) {
+            lines.push(currentLine.trim());
+            currentLine = word + " ";
+        } else {
+            currentLine += word + " ";
+        }
+    });
+
+    if (currentLine.trim()) {
+        lines.push(currentLine.trim());
+    }
+
+    return lines;
+  }
 
 })();
 
