@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nastavnički portal</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+
+    .portal-container {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .portal-container h1 {
+      font-size: 2rem;
+      color: #333333;
+      margin-bottom: 20px;
+    }
+
+    .portal-container input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #cccccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    .portal-container button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .portal-container button.save {
+      background-color: #007bff;
+      color: #ffffff;
+    }
+
+    .portal-container button.save:hover {
+      background-color: #0056b3;
+    }
+
+    .portal-container button.generate-links {
+      background-color: #28a745;
+      color: #ffffff;
+    }
+
+    .portal-container button.generate-links:hover {
+      background-color: #218838;
+    }
+
+    .links-container {
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    .links-container a {
+      display: block;
+      margin: 10px 0;
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .links-container a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="portal-container">
+    <h1>Nastavnički portal</h1>
+    <input type="file" id="file-upload" accept=".pdf,.doc,.docx,.txt">
+    <button class="save">Save</button>
+    <button class="generate-links" onclick="generateLinks()">Generate Links</button>
+    <div class="links-container" id="links-container">
+      <!-- Links will appear here -->
+    </div>
+  </div>
+
+  <script>
+    function generateLinks() {
+      const linksContainer = document.getElementById('links-container');
+      // Clear any existing links
+      linksContainer.innerHTML = '';
+      // Create and append test links
+      const link1 = document.createElement('a');
+      link1.href = '#';
+      link1.textContent = 'Test Link 1';
+      linksContainer.appendChild(link1);
+
+      const link2 = document.createElement('a');
+      link2.href = '#';
+      link2.textContent = 'Test Link 2';
+      linksContainer.appendChild(link2);
+    }
+  </script>
+</body>
+</html>

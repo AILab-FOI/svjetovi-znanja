@@ -124,7 +124,7 @@ def serve_static(filename):
 
 @app.route('/', methods=['GET'])
 def serve_index():
-    return serve_static( 'index.html' )
+    return serve_static( 'teacher_login.html' )
 
 # ----------------------------------------------------------------
 # Run the server
