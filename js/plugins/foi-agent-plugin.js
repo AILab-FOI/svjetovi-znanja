@@ -202,6 +202,11 @@
         let prompt = args.slice(1).join(" ");
         prompt = prompt.replace(/^"(.*)"$/, '$1');
 
+        if (prompt.includes("\\V")) {
+          var variableId = parseInt(prompt.match(/\d+/)[0]);
+          prompt = $gameVariables.value(variableId);
+        }
+    
         // we can't block in MV; we just log the result or store it in a variable
         window.foi_agent.ask(agentName, prompt)
           .then(response => {
