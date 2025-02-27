@@ -91,7 +91,7 @@
   <div class="portal-container">
     <h1>Nastavnički portal</h1>
     <input type="file" id="file-upload" accept=".pdf,.doc,.docx,.txt">
-    <button class="save">Save</button>
+    <button class="save" onclick="uploadFile()">Save</button>
     <button class="generate-links" onclick="generateLinks()">Generate Links</button>
     <div class="links-container" id="links-container">
       <!-- Links will appear here -->
@@ -99,11 +99,44 @@
   </div>
 
   <script>
+    // Function to upload file
+    async function uploadFile() {
+      const fileInput = document.getElementById('file-upload');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert('Please select a file to upload.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch('http://localhost:5000/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          alert('File uploaded successfully!');
+        } else {
+          alert('File upload failed: ' + data.message);
+        }
+      } catch (error) {
+        console.error(error);
+        alert('An error occurred while uploading the file.');
+      }
+    }
+
+    // Function to generate test links
     function generateLinks() {
       const linksContainer = document.getElementById('links-container');
-      // Clear any existing links
-      linksContainer.innerHTML = '';
-      // Create and append test links
+      // Clear existing links
+      linksContainer.innerHTML = ''; 
+
       const link1 = document.createElement('a');
       link1.href = 'http://localhost:5000/student_registration.html';
       link1.textContent = 'Registracija - http://localhost:5000/student_registration.html';
