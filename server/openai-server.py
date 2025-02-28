@@ -193,6 +193,34 @@ def register():
 
     return jsonify(success=True, message='Registration successful'), 200
 
+
+# ----------------------------------------------------------------
+# Login check
+#    
+# ----------------------------------------------------------------
+
+# RethinkDB connection
+conn = r.connect(host='localhost', port=28015, db='mmorpg')
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify(success=False, message='Username and password are required'), 400
+
+    # Check if the username and password match
+    user = r.table('users').filter({'username': username, 'password': password}).run(conn)
+    user = list(user)
+
+    if not user:
+        return jsonify(success=False, message='Invalid credentials'), 400
+
+    # Return the user's permission level
+    return jsonify(success=True, permission=user[0]['permission']), 200
+
 # ----------------------------------------------------------------
 # Run the server
 # ----------------------------------------------------------------
