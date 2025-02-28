@@ -76,22 +76,61 @@
     <input type="password" id="password" placeholder="Password" required>
     <input type="password" id="confirm-password" placeholder="Confirm Password" required>
     <div class="error-message" id="error-message">Lozinke se ne podudaraju</div>
-    <button class="register" onclick="validateRegistration()">Register</button>
+    <button class="register" onclick="registerUser()">Register</button>
   </div>
 
   <script>
-    function validateRegistration() {
+    async function registerUser() {
+      const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirm-password').value;
       const errorMessage = document.getElementById('error-message');
 
+      // Check if passwords match
       if (password !== confirmPassword) {
-        errorMessage.style.display = 'block'; // Show error message
-      } else {
-        errorMessage.style.display = 'none'; // Hide error message
-        // Redirect to the login page
-        window.location.href = 'http://localhost:5000/teacher_login.html';
+        errorMessage.style.display = 'block';
+        return;
       }
+
+      // Hash the password
+      const hashedPassword = await hashPassword(password);
+
+      // Send data to the backend
+      try {
+        const response = await fetch('http://localhost:5000/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username,
+            password: hashedPassword,
+            permission: 200,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Redirect to the login page
+          window.location.href = 'http://localhost:5000/teacher_login.html';
+        } else {
+          alert('Registration failed: ' + data.message);
+        }
+      } catch (error) {
+        console.error(error);
+        alert('An error occurred during registration.');
+      }
+    }
+
+    // Function to hash the password (using SHA-256)
+    async function hashPassword(password) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+      return hashHex;
     }
   </script>
 </body>

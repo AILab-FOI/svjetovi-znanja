@@ -1,5 +1,7 @@
 import os
 import openai
+import hashlib
+from rethinkdb import RethinkDB; r = RethinkDB()
 
 from flask import Flask, jsonify, request, send_from_directory
 
@@ -158,6 +160,38 @@ def upload_file():
         return jsonify(success=True, message='File uploaded successfully'), 200
     else:
         return jsonify(success=False, message='File type not allowed'), 400
+    
+# ----------------------------------------------------------------
+# Insert teacher
+#    
+# ----------------------------------------------------------------
+
+# RethinkDB connection
+conn = r.connect(host='localhost', port=28015, db='mmorpg')
+
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    permission = data.get('permission')
+
+    if not username or not password:
+        return jsonify(success=False, message='Username and password are required'), 400
+
+    # Check if the username already exists
+    existing_user = r.table('users').filter({'username': username}).run(conn)
+    if list(existing_user):
+        return jsonify(success=False, message='Username already exists'), 400
+
+    # Insert the new user into the database
+    r.table('users').insert({
+        'username': username,
+        'password': password,  # Password is already hashed on the frontend
+        'permission': permission,
+    }).run(conn)
+
+    return jsonify(success=True, message='Registration successful'), 200
 
 # ----------------------------------------------------------------
 # Run the server
