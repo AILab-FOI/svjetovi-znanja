@@ -1,4 +1,5 @@
 [
 null,
-{"id":1,"battlerName":"Actor2_5","characterIndex":0,"characterName":"Actor1","classId":1,"equips":[1,1,2,3,0],"faceIndex":2,"faceName":"Nature","traits":[],"initialLevel":1,"maxLevel":99,"name":"Robo","nickname":"Robo","note":"","profile":""}
+{"id":1,"battlerName":"Actor2_5","characterIndex":0,"characterName":"Actor1","classId":1,"equips":[1,1,2,3,0],"faceIndex":2,"faceName":"Nature","traits":[],"initialLevel":1,"maxLevel":99,"name":"Robo","nickname":"Robo","note":"","profile":""},
+{"id":2,"battlerName":"Actor2_4","characterIndex":7,"characterName":"People2","classId":1,"equips":[0,0,0,0,0],"faceIndex":7,"faceName":"People2","traits":[],"initialLevel":1,"maxLevel":99,"name":"Lilly","nickname":"","note":"","profile":""}
 ]
