@@ -127,6 +127,39 @@ def serve_index():
     return serve_static( 'teacher_login.html' )
 
 # ----------------------------------------------------------------
+# File upload
+#    
+# ----------------------------------------------------------------
+
+# Folder to save uploaded files
+UPLOAD_FOLDER = 'lecture_materials'
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# Allowed file extensions
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'txt'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify(success=False, message='No file part'), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify(success=False, message='No selected file'), 400
+
+    if file and allowed_file(file.filename):
+        filename = file.filename
+        file.save(os.path.join(UPLOAD_FOLDER, filename))
+        return jsonify(success=True, message='File uploaded successfully'), 200
+    else:
+        return jsonify(success=False, message='File type not allowed'), 400
+
+# ----------------------------------------------------------------
 # Run the server
 # ----------------------------------------------------------------
 if __name__ == "__main__":
