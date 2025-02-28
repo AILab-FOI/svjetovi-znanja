@@ -92,8 +92,9 @@
         return;
       }
 
-      // Hash the password using SHA-256
-      const hashedPassword = await hashPassword(password);
+      // Hash the password using HMAC with SHA-256 and salt
+      const salt = "SuperSecretKey";
+      const hashedPassword = await hmacSHA256(password, salt);
 
       // Send data to the backend
       try {
@@ -123,12 +124,18 @@
       }
     }
 
-    // Function to hash the password using SHA-256
-    async function hashPassword(password) {
+    // Function to hash the password using HMAC with SHA-256
+    async function hmacSHA256(password, salt) {
       const encoder = new TextEncoder();
-      const data = encoder.encode(password);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const key = await crypto.subtle.importKey(
+        'raw',
+        encoder.encode(salt),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+      );
+      const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(password));
+      const hashArray = Array.from(new Uint8Array(signature));
       const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
       return hashHex;
     }
