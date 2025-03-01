@@ -1,6 +1,7 @@
 import os
 import openai
 import hashlib
+import hmac
 from rethinkdb import RethinkDB; r = RethinkDB()
 
 from flask import Flask, jsonify, request, send_from_directory
@@ -190,6 +191,17 @@ def register():
         'password': password,  # Password is already hashed on the frontend
         'permission': permission,
     }).run(conn)
+
+    # Create folder structure for the user
+    base_folder = os.path.join('lecture_materials')
+    os.makedirs(base_folder, exist_ok=True)  # Create base folder if it doesn't exist
+    user_folder = os.path.join(base_folder, username)
+    os.makedirs(user_folder, exist_ok=True)  # Create user folder
+
+    # Create subfolders
+    subfolders = ['Naesala', 'Haryk', 'Ayred', 'Hagmar']
+    for subfolder in subfolders:
+        os.makedirs(os.path.join(user_folder, subfolder), exist_ok=True)
 
     return jsonify(success=True, message='Registration successful'), 200
 
