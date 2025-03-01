@@ -115,8 +115,10 @@
 
         if (response.ok) {
           if (data.permission === 200) {
-            window.location.href = 'http://localhost:5000/teacher_main.html';
-          } else if (data.permission === 0) {
+            // Redirect to teacher_main.html with the username as a query parameter
+            window.location.href = `http://localhost:5000/teacher_main.html?username=${username}`;
+          } else {
+            // Redirect to index.html for non-teachers
             window.location.href = 'http://localhost:5000/index.html';
           }
         } else {

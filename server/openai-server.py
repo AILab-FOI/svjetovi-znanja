@@ -139,28 +139,32 @@ UPLOAD_FOLDER = 'lecture_materials'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-# Allowed file extensions
-ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'txt'}
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
         return jsonify(success=False, message='No file part'), 400
 
     file = request.files['file']
+    username = request.form.get('username')
+    folder = request.form.get('folder')
 
     if file.filename == '':
         return jsonify(success=False, message='No selected file'), 400
 
-    if file and allowed_file(file.filename):
-        filename = file.filename
-        file.save(os.path.join(UPLOAD_FOLDER, filename))
+    if file and username and folder:
+        # Create user folder if it doesn't exist
+        user_folder = os.path.join(UPLOAD_FOLDER, username)
+        os.makedirs(user_folder, exist_ok=True)
+
+        # Create subfolder based on dropdown selection
+        subfolder = os.path.join(user_folder, folder)
+        os.makedirs(subfolder, exist_ok=True)
+
+        # Save the file
+        file.save(os.path.join(subfolder, file.filename))
         return jsonify(success=True, message='File uploaded successfully'), 200
     else:
-        return jsonify(success=False, message='File type not allowed'), 400
+        return jsonify(success=False, message='Invalid request'), 400
     
 # ----------------------------------------------------------------
 # Insert teacher

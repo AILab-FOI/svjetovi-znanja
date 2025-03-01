@@ -41,6 +41,15 @@
       font-size: 1rem;
     }
 
+    .portal-container select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #cccccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
     .portal-container button {
       width: 100%;
       padding: 10px;
@@ -91,6 +100,12 @@
   <div class="portal-container">
     <h1>Nastavnički portal</h1>
     <input type="file" id="file-upload" accept=".pdf,.doc,.docx,.txt">
+    <select id="dropdown">
+      <option value="Naesala">Naesala</option>
+      <option value="Haryk">Haryk</option>
+      <option value="Ayred">Ayred</option>
+      <option value="Hagmar">Hagmar</option>
+    </select>
     <button class="save" onclick="uploadFile()">Save</button>
     <button class="generate-links" onclick="generateLinks()">Generate Links</button>
     <div class="links-container" id="links-container">
@@ -99,10 +114,17 @@
   </div>
 
   <script>
+    // Extract the username from the URL query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const username = urlParams.get('username');
+    document.getElementById('username').textContent = username;
+
     // Function to upload file
     async function uploadFile() {
       const fileInput = document.getElementById('file-upload');
+      const dropdown = document.getElementById('dropdown');
       const file = fileInput.files[0];
+      const folder = dropdown.value;
 
       if (!file) {
         alert('Please select a file to upload.');
@@ -111,6 +133,8 @@
 
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('username', username);
+      formData.append('folder', folder);
 
       try {
         const response = await fetch('http://localhost:5000/upload', {
@@ -131,11 +155,10 @@
       }
     }
 
-    // Function to generate test links
+    // Function to generate links
     function generateLinks() {
       const linksContainer = document.getElementById('links-container');
-      // Clear existing links
-      linksContainer.innerHTML = ''; 
+      linksContainer.innerHTML = ''; // Clear existing links
 
       const link1 = document.createElement('a');
       link1.href = 'http://localhost:5000/student_registration.html';
