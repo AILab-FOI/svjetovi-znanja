@@ -9,6 +9,10 @@ import logging
 from rethinkdb import RethinkDB
 from collections import defaultdict
 from flask import Flask, jsonify, request, send_from_directory
+from docx import Document
+from io import BytesIO
+import tempfile
+import textract
 
 app = Flask(__name__)
 
@@ -43,7 +47,10 @@ agent_doc_map = defaultdict(list)
 # RethinkDB connection
 conn = r.connect(host=db_host, port=db_port, db=db_name)
 
-def find_similar_documents(query, agent_name, top_n = 3):
+# Folder to save uploaded files
+UPLOAD_FOLDER = 'lecture_materials'
+
+def find_similar_documents(query, agent_name, top_n = 5):
     try:
         query_embedding = get_embedding(query)
         if query_embedding is None:
@@ -51,7 +58,7 @@ def find_similar_documents(query, agent_name, top_n = 3):
 
         distances, indices = agent_document_indexes[agent_name].search(np.array([query_embedding]), top_n)
 
-        doc_ids = [agent_doc_map[agent_name][idx] for idx in indices[0] if idx < len(agent_doc_map[agent_name])]
+        doc_ids = [agent_doc_map[agent_name][idx] for idx in indices[0] if idx != -1 and idx < len(agent_doc_map[agent_name])]
 
         similar_docs = list(r.table(db_embedding_table).get_all(*doc_ids).run(conn))
                 
@@ -130,7 +137,12 @@ def setup_database():
 
     except Exception as e:
         print(f"Error setting up RethinkDB: {e}")
-    
+
+# ----------------------------------------------------------------
+# Add a document to the document pool of an agent (POST)
+#    Endpoint: /new/<agent_name>
+#    JSON Body: { "text": <documentText> }
+# ---------------------------------------------------------------- 
 @app.route("/document/<path:agent_name>", methods=["POST"])
 def add_new_document(agent_name):
     data = request.get_json(force=True)
@@ -139,6 +151,33 @@ def add_new_document(agent_name):
     if store_document(text, agent_name):
         return jsonify({"status": "success", "response": "Successfully stored the document."}), 200
     return jsonify({"status": "error", "response": "Error storing document."}), 500
+
+def handle_pdf(file):
+    file_stream = BytesIO(file.read())
+    doc = fitz.open(stream=file_stream, filetype="pdf")
+    full_text = "\n".join([page.get_text("text") for page in doc])
+    return full_text
+
+def handle_doc(file):
+    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(file_path)
+
+    try:
+        extracted_text = textract.process(file_path).decode("utf-8")
+    except Exception as e:
+        extracted_text = f"Error extracting text: {str(e)}"
+    finally:
+        os.remove(file_path) 
+
+    return extracted_text
+    
+def handle_docx(file_path):
+    doc = Document(file_path)
+    text = "\n".join([para.text for para in doc.paragraphs])
+    return text
+
+def handle_text(file):
+    return file.read()
     
 # ----------------------------------------------------------------
 # Create a new agent (POST)
@@ -256,8 +295,6 @@ def serve_index():
 #    
 # ----------------------------------------------------------------
 
-# Folder to save uploaded files
-UPLOAD_FOLDER = 'lecture_materials'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
@@ -326,9 +363,6 @@ def delete_file():
 #    
 # ----------------------------------------------------------------
 
-# RethinkDB connection
-conn = r.connect(host=db_host, port=db_port, db=db_name)
-
 @app.route('/register', methods=['POST'])
 def register():
     data = request.json
@@ -369,9 +403,6 @@ def register():
 # Login check
 #    
 # ----------------------------------------------------------------
-
-# RethinkDB connection
-conn = r.connect(host='localhost', port=28015, db='mmorpg')
 
 @app.route('/login', methods=['POST'])
 def login():
