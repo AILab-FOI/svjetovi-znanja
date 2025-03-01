@@ -270,6 +270,62 @@ def login():
     # Return the user's permission level
     return jsonify(success=True, permission=user[0]['permission']), 200
 
+
+# ----------------------------------------------------------------
+# Insert student
+#    
+# ----------------------------------------------------------------
+
+# RethinkDB connection
+conn = r.connect(host='localhost', port=28015, db='mmorpg')
+
+@app.route('/regucenik', methods=['POST'])
+def regucenik():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify(success=False, message='Username and password are required'), 400
+
+    # Check if the username already exists
+    existing_user = r.table('users').filter({'username': username}).run(conn)
+    if list(existing_user):
+        return jsonify(success=False, message='Username already exists'), 400
+
+    # Insert the new user into the database
+    r.table('users').insert({
+        'username': username,
+        'password': password,  # Password is already hashed on the frontend
+        'permission': 0,
+        'mapId': 1,
+        'skin': {
+            'battlerName': 'Actor1_1',
+            'characterIndex': 0,
+            'characterName': 'Actor1',
+            'faceIndex': 0,
+            'faceName': 'Actor1',
+        },
+        'x': 5,
+        'y': 5,
+        'isBusy': False,
+        'stats': {
+            'armors' : { },
+            'classId': 1,
+            'equips': [1, 1, 2, 3, 0],
+            'exp': {"1": 0},
+            'gold': 0,
+            'hp': 450,
+            'items': { },
+            'level': 1,
+            'mp': 90,
+            'skills': [8, 10],
+            'weapons': { }
+        },
+    }).run(conn)
+
+    return jsonify(success=True, message='Registration successful'), 200
+
 # ----------------------------------------------------------------
 # Run the server
 # ----------------------------------------------------------------

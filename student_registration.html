@@ -76,22 +76,67 @@
     <input type="password" id="password" placeholder="Password" required>
     <input type="password" id="confirm-password" placeholder="Confirm Password" required>
     <div class="error-message" id="error-message">Lozinke se ne podudaraju</div>
-    <button class="register" onclick="validateRegistration()">Register</button>
+    <button class="register" onclick="registerUser()">Register</button>
   </div>
 
   <script>
-    function validateRegistration() {
+    async function registerUser() {
+      const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirm-password').value;
       const errorMessage = document.getElementById('error-message');
 
+      // Check if passwords match
       if (password !== confirmPassword) {
-        errorMessage.style.display = 'block'; // Show error message
-      } else {
-        errorMessage.style.display = 'none'; // Hide error message
-        // Redirect to the index page
-        window.location.href = 'http://localhost:5000/index.html';
+        errorMessage.style.display = 'block';
+        return;
       }
+
+      // Hash the password using HMAC with SHA-256 and salt
+      const salt = "SuperSecretKey";
+      const hashedPassword = await hmacSHA256(password, salt);
+
+      // Send data to the backend
+      try {
+        const response = await fetch('http://localhost:5000/regucenik', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username,
+            password: hashedPassword,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Redirect to the index page
+          window.location.href = 'http://localhost:5000/index.html';
+        } else {
+          alert('Registration failed: ' + data.message);
+        }
+      } catch (error) {
+        console.error(error);
+        alert('An error occurred during registration.');
+      }
+    }
+
+    // Function to hash the password using HMAC with SHA-256
+    async function hmacSHA256(password, salt) {
+      const encoder = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        'raw',
+        encoder.encode(salt),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+      );
+      const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(password));
+      const hashArray = Array.from(new Uint8Array(signature));
+      const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+      return hashHex;
     }
   </script>
 </body>
