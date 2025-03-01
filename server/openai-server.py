@@ -139,6 +139,23 @@ UPLOAD_FOLDER = 'lecture_materials'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
+@app.route('/folder-structure', methods=['GET'])
+def get_folder_structure():
+    username = request.args.get('username')
+    if not username:
+        return jsonify(success=False, message='Username is required'), 400
+
+    user_folder = os.path.join(UPLOAD_FOLDER, username)
+    if not os.path.exists(user_folder):
+        return jsonify(success=False, message='User folder does not exist'), 404
+
+    files = []
+    for root, dirs, filenames in os.walk(user_folder):
+        for filename in filenames:
+            files.append(os.path.relpath(os.path.join(root, filename), user_folder))
+
+    return jsonify(success=True, files=files), 200
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
@@ -165,6 +182,22 @@ def upload_file():
         return jsonify(success=True, message='File uploaded successfully'), 200
     else:
         return jsonify(success=False, message='Invalid request'), 400
+
+@app.route('/delete-file', methods=['POST'])
+def delete_file():
+    data = request.json
+    username = data.get('username')
+    filename = data.get('filename')
+
+    if not username or not filename:
+        return jsonify(success=False, message='Username and filename are required'), 400
+
+    file_path = os.path.join(UPLOAD_FOLDER, username, filename)
+    if not os.path.exists(file_path):
+        return jsonify(success=False, message='File does not exist'), 404
+
+    os.remove(file_path)
+    return jsonify(success=True, message='File deleted successfully'), 200
     
 # ----------------------------------------------------------------
 # Insert teacher
