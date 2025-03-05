@@ -170,7 +170,10 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+# game specific files
 rethinkdb_data/
 node_modules/
 save/
 *.log
+server/*.log
+server/lecture_materials/

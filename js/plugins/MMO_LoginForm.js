@@ -80,16 +80,16 @@ function LoginForm() {
   LoginForm.prototype.createLoginForm = function() {
     // Generate the form depending on parameters (it is ugly but eh)
     let html =  '<div id="LoginForm" style="background-color: rgba(0,0,0,0.4); border-radius: 8px; margin: 0 auto; width: 400px; padding: 8px;">'+
-    '<div style="color: white;">Login</div>'+
+    '<div style="color: white; font-family: \'Press Start 2P\', cursive;">Prijava</div>'+
     '<div>'+
       '<div id="loginErrBox"></div>'+
       '<div>'+
-        '<input type="text" id="inputUsername" placeholder="Username">';
+        '<input type="text" id="inputUsername" placeholder="Korisničko ime">';
 
-    if(LoginForm.Parameters["allowAccountCreation"]) html = html + '<br><input type="password" id="inputPassword" placeholder="Password">';
+    if(LoginForm.Parameters["allowAccountCreation"]) html = html + '<br><input type="password" id="inputPassword" placeholder="Lozinka">';
 
     html = html + '</div><br>'+
-        '<button id="btnConnect">Connect</button>'+
+        '<button id="btnConnect">Prijava</button>'+
       '</div>'+
     '</div>';
 
