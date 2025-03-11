@@ -1,9 +1,9 @@
 [
 null,
-{"id":1,"expanded":true,"name":"OdabirLika","order":1,"parentId":0,"scrollX":433.3333333333333,"scrollY":236},
-{"id":2,"expanded":false,"name":"Luminaris","order":2,"parentId":0,"scrollX":650,"scrollY":354},
-{"id":3,"expanded":true,"name":"Aetheris","order":3,"parentId":0,"scrollX":819,"scrollY":508},
-{"id":4,"expanded":false,"name":"DvoranaMentorstva","order":5,"parentId":0,"scrollX":540.6666666666666,"scrollY":298.6666666666667},
-{"id":5,"expanded":false,"name":"KristalnaAkademija","order":4,"parentId":0,"scrollX":540.6666666666666,"scrollY":325.3333333333333},
+{"id":1,"expanded":true,"name":"OdabirLika","order":1,"parentId":0,"scrollX":433.3333333333333,"scrollY":388},
+{"id":2,"expanded":false,"name":"Luminaris","order":2,"parentId":0,"scrollX":650,"scrollY":600},
+{"id":3,"expanded":true,"name":"Aetheris","order":3,"parentId":0,"scrollX":658,"scrollY":354},
+{"id":4,"expanded":false,"name":"DvoranaMentorstva","order":5,"parentId":0,"scrollX":658,"scrollY":354},
+{"id":5,"expanded":false,"name":"KristalnaAkademija","order":4,"parentId":0,"scrollX":658,"scrollY":354},
 {"id":6,"expanded":false,"name":"PustopoljinaZaborava","order":6,"parentId":0,"scrollX":819,"scrollY":508}
 ]
