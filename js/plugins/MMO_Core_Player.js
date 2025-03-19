@@ -357,7 +357,6 @@ function MMO_Core_Player() {
   
   MMO_Core_Player.savePlayerStats = function() {
     if($gameActors["_data"][1] === undefined) return;
-
     let equips = [];
     for(var i = 0; i < $gameActors["_data"][1]["_equips"].length; i++) {
       equips.push($gameActors["_data"][1]["_equips"][i]["_itemId"])

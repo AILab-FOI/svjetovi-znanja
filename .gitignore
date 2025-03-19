@@ -177,3 +177,4 @@ save/
 *.log
 server/*.log
 server/lecture_materials/
+server/tokens.json
