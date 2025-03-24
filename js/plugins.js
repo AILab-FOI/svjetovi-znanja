@@ -4,7 +4,7 @@ var $plugins =
 [
 {"name":"Community_Basic","status":true,"description":"Plugin used to set basic parameters.","parameters":{"cacheLimit":"20","screenWidth":"768","screenHeight":"432","changeWindowWidthTo":"","changeWindowHeightTo":"","renderingMode":"auto","alwaysDash":"off"}},
 {"name":"MadeWithMv","status":true,"description":"Show a Splash Screen \"Made with MV\" and/or a Custom Splash Screen before going to main screen.","parameters":{"Show Made With MV":"true","Made with MV Image":"MadeWithMv","Show Custom Splash":"false","Custom Image":"logotip","Fade Out Time":"120","Fade In Time":"120","Wait Time":"160"}},
-{"name":"MapHUD","status":true,"description":"Simple HUD plugin for thalesgal.","parameters":{"X":"600","Y":"0","Maps":"Luminaris,Aetheris,KristalnaAkademija,DvoranaMentorstva,Pansion,Taverna,Željezarija,Apoteka"}},
+{"name":"MapHUD","status":true,"description":"Simple HUD plugin for thalesgal.","parameters":{"X":"0","Y":"0","Maps":"Luminaris,Aetheris,KristalnaAkademija,DvoranaMentorstva,Pansion,Taverna,Željezarija,Apoteka"}},
 {"name":"OrangeCustomEvents","status":true,"description":"This plugin Will let you add or copy events to the current map","parameters":{}},
 {"name":"OrangeCustomEventCreator","status":true,"description":"This plugin Will let you create virtual events with script calls","parameters":{}},
 {"name":"MMO_Core","status":true,"description":"MMORPG Maker MV - Core","parameters":{"Server Location":"http://127.0.0.1:8097/"}},
