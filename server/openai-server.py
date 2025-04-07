@@ -51,46 +51,40 @@ conn = r.connect(host=db_host, port=db_port, db=db_name)
 # Folder to save uploaded files
 UPLOAD_FOLDER = 'lecture_materials'
 
-def find_similar_documents(query, agent_name, top_n = 5):
-    try:
-        query_embedding = get_embedding(query)
-        if query_embedding is None:
-            return []
-
-        distances, indices = agent_document_indexes[agent_name].search(np.array([query_embedding]), top_n)
-
-        doc_ids = [agent_doc_map[agent_name][idx] for idx in indices[0] if idx != -1 and idx < len(agent_doc_map[agent_name])]
-
-        similar_docs = list(r.table(db_embedding_table).get_all(*doc_ids).run(conn))
-                
-        return similar_docs
-    except Exception as e:
-        print("Error retrieving similar documents")
-        logging.error(f"Error retrieving similar documents: {e}")
-
-        return []
+def find_embedding_for_scientist(teacher, scientist):
+    record = list(r.table(db_embedding_table).filter({
+        "teacher": teacher,
+        "scientist": scientist
+    }).run(conn))
+    
+    if record:
+        return np.array(record[0]['embedding'], dtype=np.float32)
+    return None
 
 def load_embeddings_from_database():
-    documents = list(r.table("embeddings").run(conn))
+    documents = list(r.table(db_embedding_table).run(conn))
+    total_embeddings = 0
 
-    agent_names = list(r.table(db_embedding_table).pluck("agent_name").distinct().run(conn))
+    for doc in documents:
+        teacher = doc.get("teacher")
+        agent_name = doc.get("agent_name")
+        embedding = doc.get("embedding")
+        doc_id = doc.get("id")
 
-    for agent in agent_names:
-        agent_name = agent.get("agent_name")
+        if not all([teacher, agent_name, embedding, doc_id]):
+            continue
 
-        documents_for_agent = list(r.table(db_embedding_table).filter({"agent_name": agent_name}).run(conn))
-        embeddings_list = []
-        agent_doc_map[agent_name] = []
-    
-        for doc in documents_for_agent:
-            embeddings_list.append(np.array(doc.get("embedding"), dtype=np.float32))
-            agent_doc_map[agent_name].append(doc["id"])
+        index_key = (teacher, agent_name)
 
-        if len(embeddings_list) > 0: 
-            embeddings_np = np.vstack(embeddings_list)
-            agent_document_indexes[agent_name].add(embeddings_np)
+        if index_key not in agent_document_indexes:
+            agent_document_indexes[index_key] = faiss.IndexHNSWFlat(dimension, 32)
 
-    print(f"Loaded {len(documents)} embeddings into FAISS.")
+        agent_document_indexes[index_key].add(np.array([embedding], dtype=np.float32))
+        agent_doc_map[index_key].append(doc_id)
+        total_embeddings += 1
+
+    print(f"Loaded {total_embeddings} document embeddings into FAISS.")
+
 
 def get_embedding(text: str):
     try:
@@ -105,25 +99,27 @@ def get_embedding(text: str):
 
     return None
 
-def store_document(text, agent_name):
+def store_document(text, teacher, agent_name):
     embedding = get_embedding(text)
-
+    
     if embedding:
         insert_result = r.table(db_embedding_table).insert({
+            "teacher": teacher,
+            "agent_name": agent_name,
             "text": text,
-            "embedding": embedding,
-            "agent_name": agent_name
+            "embedding": embedding
         }).run(conn)
 
         doc_id = insert_result.get("generated_keys", [None])[0]
 
         if doc_id:
-            agent_document_indexes[agent_name].add(np.array([embedding], dtype=np.float32))  
-            agent_doc_map[agent_name].append(doc_id)
-            
+            index_key = (teacher, agent_name)
+            agent_document_indexes[index_key].add(np.array([embedding], dtype=np.float32))
+            agent_doc_map[index_key].append(doc_id)
             return True
-        
+
     return False
+
 
 def setup_database():
     try:
@@ -159,18 +155,13 @@ def handle_pdf(file):
     full_text = "\n".join([page.get_text("text") for page in doc])
     return full_text
 
-def handle_doc(file):
-    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(file_path)
-
+def handle_doc(file_path):
     try:
         extracted_text = textract.process(file_path).decode("utf-8")
     except Exception as e:
         extracted_text = f"Error extracting text: {str(e)}"
-    finally:
-        os.remove(file_path) 
-
     return extracted_text
+
     
 def handle_docx(file_path):
     doc = Document(file_path)
@@ -185,15 +176,16 @@ def handle_text(file):
 #    Endpoint: /new/<username>/<agent_name>
 #    JSON Body: { "content": <systemPrompt> }
 # ----------------------------------------------------------------
-@app.route("/new/<path:username>/<path:agent_name>", methods=["POST"])
-def create_agent(username, agent_name):
+@app.route("/new/<path:teacher>/<path:username>/<path:agent_name>", methods=["POST"])
+def create_agent(teacher, username, agent_name):
     try:
         # Extract the system prompt from JSON
         data = request.get_json(force=True)
         system_prompt = data.get("content", "")
 
+        # TODO: added teacher here in key bellow, now integrate with the rest
         # Initialize conversation with a system message
-        conversations[(username, agent_name)] = [
+        conversations[(teacher, username, agent_name)] = [
             {"role": "system", "content": system_prompt}
         ]
 
@@ -211,44 +203,92 @@ def create_agent(username, agent_name):
 # ----------------------------------------------------------------
 @app.route("/query/<path:username>/<path:agent_name>", methods=["POST"])
 def query_agent(username, agent_name):
-    key = (username, agent_name)
-    if key not in conversations:
-        return jsonify({
-            "status": "error",
-            "response": f"No such agent '{agent_name}' for user '{username}'."
-        }), 404
-
     try:
+        # 1. Look up the student's teacher
+        user_record = list(r.table("users").filter({"username": username}).run(conn))
+        if not user_record:
+            return jsonify({"status": "error", "response": "Student user not found."}), 404
+
+        teacher = user_record[0].get("teacher")
+        if not teacher:
+            return jsonify({"status": "error", "response": "Teacher not assigned to student."}), 400
+
+        # 2. Retrieve the student's question
         data = request.get_json(force=True)
-        user_prompt = data.get("prompt", "")
+        user_prompt = data.get("prompt", "").strip()
+        if not user_prompt:
+            return jsonify({"status": "error", "response": "Prompt is required."}), 400
 
-        relevant_docs = find_similar_documents(user_prompt, agent_name)
-        context = "\n\n".join([doc["text"] for doc in relevant_docs])
+        # 3. Get the embedding of the user prompt
+        query_embedding = get_embedding(user_prompt)
+        if query_embedding is None:
+            return jsonify({"status": "error", "response": "Failed to get embedding."}), 500
 
-        print(f"Using {len(relevant_docs)} for the prompt.")
+        # 4. Retrieve relevant document chunks for this (teacher, agent)
+        index_key = (teacher, agent_name)
+        if index_key not in agent_document_indexes:
+            return jsonify({"status": "error", "response": "No documents found for this agent."}), 404
 
-        messages = conversations[key]
-        # Append user message
+        faiss_index = agent_document_indexes[index_key]
+        doc_ids = agent_doc_map[index_key]
+
+        k = 5  # top-k chunks to use
+        D, I = faiss_index.search(np.array([query_embedding], dtype=np.float32), k)
+        
+        # Retrieve corresponding document texts from DB
+        context_chunks = []
+        for idx in I[0]:
+            if 0 <= idx < len(doc_ids):
+                doc_id = doc_ids[idx]
+                record = r.table(db_embedding_table).get(doc_id).run(conn)
+                if record:
+                    context_chunks.append(record["text"])
+
+        if not context_chunks:
+            return jsonify({"status": "error", "response": "No relevant document chunks found."}), 404
+
+        context = "\n\n".join(context_chunks)
+
+        # 5. Build or retrieve conversation state
+        conv_key = (teacher, username, agent_name)
+        if conv_key not in conversations:
+            conversations[conv_key] = []
+
+        messages = conversations[conv_key]
+
+        # Append current user question
         messages.append({"role": "user", "content": user_prompt})
 
-        # Call OpenAI ChatCompletion
-        response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "user", "content": f"Koristi sljedeći kontekst za odgovaranje na pitanje:{context}\n\nPitanje: {user_prompt}\n\nOdgovor:"}        
-            ]
+        # 6. Call OpenAI with context and question
+        system_instruction = (
+            "Odgovori na pitanje koristeći isključivo sljedeći kontekst iz dokumenata "
+            f"koje je učitelj '{teacher}' priložio za agenta '{agent_name}'. "
+            "Ako odgovor nije sadržan u kontekstu, reci da ne znaš."
         )
-        assistant_reply = response.choices[0].message.content
 
-        # Append the assistant’s reply
+        prompt_with_context = (
+            f"{system_instruction}\n\n"
+            f"Kontekst:\n{context}\n\n"
+            f"Pitanje: {user_prompt}\n\nOdgovor:"
+        )
+
+        response = openai.chat.completions.create(
+            model="gpt-4o-mini",  # You can adjust the model
+            messages=[{"role": "user", "content": prompt_with_context}]
+        )
+
+        assistant_reply = response.choices[0].message.content
         messages.append({"role": "assistant", "content": assistant_reply})
 
         return jsonify({
             "status": "success",
             "response": assistant_reply
         })
+
     except Exception as e:
         return jsonify({"status": "error", "response": str(e)}), 500
+
+
 
 # ----------------------------------------------------------------
 # Delete an agent (POST)
@@ -300,7 +340,6 @@ def serve_index():
 # ----------------------------------------------------------------
 
 # Folder to save uploaded files
-#UPLOAD_FOLDER = 'lecture_materials'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
@@ -314,36 +353,91 @@ def get_folder_structure():
     if not os.path.exists(user_folder):
         return jsonify(success=False, message='User folder does not exist'), 404
 
-    files = []
+    files = {}
     for root, dirs, filenames in os.walk(user_folder):
         for filename in filenames:
-            files.append(os.path.relpath(os.path.join(root, filename), user_folder))
+            if 'Naesala' in root:
+                scientist = 'Naesala'
+            elif 'Haryk' in root:
+                scientist = 'Haryk'
+            elif 'Ayred' in root:
+                scientist = 'Ayred'
+            elif 'Hagmar' in root:
+                scientist = 'Hagmar'
+                
+            if scientist not in files:
+                files[ scientist ] = []
+            
+            files[ scientist ].append( filename )
 
     return jsonify(success=True, files=files), 200
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    def combine_scientist_documents(username, scientist):
+        folder_path = os.path.join(UPLOAD_FOLDER, username, scientist)
+        full_text = ""
+        
+        for filename in os.listdir(folder_path):
+            filepath = os.path.join(folder_path, filename)
+            if filename.endswith(".pdf"):
+                with open(filepath, 'rb') as f:
+                    full_text += handle_pdf(f) + "\n"
+            elif filename.endswith(".doc") or filename.endswith(".docx"):
+                if filename.endswith(".docx"):
+                    full_text += handle_docx(filepath) + "\n"
+                else:
+                    with open(filepath, 'rb') as f:
+                        full_text += handle_doc(f) + "\n"
+            elif filename.endswith(".txt"):
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    full_text += f.read() + "\n"
+            else:
+                continue
+        
+        return full_text.strip()
+
     if 'file' not in request.files:
         return jsonify(success=False, message='No file part'), 400
 
     file = request.files['file']
     username = request.form.get('username')
-    folder = request.form.get('folder')
+    scientist = request.form.get('scientist')
 
     if file.filename == '':
         return jsonify(success=False, message='No selected file'), 400
 
-    if file and username and folder:
+    if file and username and scientist:
         # Create user folder if it doesn't exist
         user_folder = os.path.join(UPLOAD_FOLDER, username)
         os.makedirs(user_folder, exist_ok=True)
 
         # Create subfolder based on dropdown selection
-        subfolder = os.path.join(user_folder, folder)
+        subfolder = os.path.join(user_folder, scientist)
         os.makedirs(subfolder, exist_ok=True)
 
         # Save the file
         file.save(os.path.join(subfolder, file.filename))
+        full_text = combine_scientist_documents(username, scientist)
+
+        store_document(full_text, username, scientist)
+
+        embedding = get_embedding(full_text)
+
+        if embedding:
+            # Delete old embedding
+            r.table(db_embedding_table).filter({
+                "teacher": username,
+                "scientist": scientist
+            }).delete().run(conn)
+
+            # Insert new one
+            r.table(db_embedding_table).insert({
+                "teacher": username,
+                "scientist": scientist,
+                "embedding": embedding
+            }).run(conn)
+
         return jsonify(success=True, message='File uploaded successfully'), 200
     else:
         return jsonify(success=False, message='Invalid request'), 400
@@ -440,7 +534,8 @@ def regucenik():
     data = request.json
     username = data.get('username')
     password = data.get('password')
-
+    teacher = data.get('teacher')
+    
     if not username or not password:
         return jsonify(success=False, message='Obavezno unesi korisničko ime i lozinku!'), 400
 
@@ -453,6 +548,7 @@ def regucenik():
     r.table('users').insert({
         'username': username,
         'password': password,  # Password is already hashed on the frontend
+        'teacher': teacher,
         'permission': 0,
         'mapId': 1,
         'skin': {

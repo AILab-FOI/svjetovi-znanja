@@ -1,83 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Svjetovi znanja - Registracija nastavnika</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #f0f0f0;
-      font-family: Arial, sans-serif;
-    }
-
-    .registration-container {
-      background-color: #ffffff;
-      padding: 40px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      width: 100%;
-      max-width: 400px;
-    }
-
-    .registration-container h1 {
-      font-size: 2rem;
-      color: #333333;
-      margin-bottom: 20px;
-    }
-
-    .registration-container input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #cccccc;
-      border-radius: 5px;
-      font-size: 1rem;
-    }
-
-    .registration-container button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 5px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    .registration-container button.register {
-      background-color: #007bff;
-      color: #ffffff;
-    }
-
-    .registration-container button.register:hover {
-      background-color: #0056b3;
-    }
-
-    .error-message {
-      color: #ff0000;
-      font-size: 0.9rem;
-      margin-top: 10px;
-      display: none;
-    }
-  </style>
+  <link rel="stylesheet" href="svjetovi.css">
 </head>
 <body>
+ <div class="wrapper">
   <div class="registration-container">
     <h1>Registracija nastavnika</h1>
-    <input type="text" id="username" placeholder="Username" required>
-    <input type="password" id="password" placeholder="Password" required>
-    <input type="password" id="confirm-password" placeholder="Confirm Password" required>
+    <input type="text" id="username" placeholder="Korisničko ime" required>
+    <input type="password" id="password" placeholder="Lozinka" required>
+    <input type="password" id="confirm-password" placeholder="Potvrda lozinke" required>
     <div class="error-message" id="error-message">Lozinke se ne podudaraju</div>
     <button class="register" onclick="registerUser()">Register</button>
   </div>
+ </div>
 
   <script>
     async function registerUser() {
@@ -98,7 +37,7 @@
 
       // Send data to the backend
       try {
-        const response = await fetch('http://localhost:5000/register', {
+        const response = await fetch('/register', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -114,13 +53,13 @@
 
         if (response.ok) {
           // Redirect to the login page
-          window.location.href = 'http://localhost:5000/teacher_login.html';
+          window.location.href = '/teacher_login.html';
         } else {
-          alert('Registration failed: ' + data.message);
+          alert('Pogreška pri registraciji: ' + data.message);
         }
       } catch (error) {
         console.error(error);
-        alert('An error occurred during registration.');
+        alert('Pogreška pri registraciji.');
       }
     }
 

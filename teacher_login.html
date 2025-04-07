@@ -1,92 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Svjetovi znanja - Prijava</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #f0f0f0;
-      font-family: Arial, sans-serif;
-    }
+  <link rel="stylesheet" href="svjetovi.css">
 
-    .login-container {
-      background-color: #ffffff;
-      padding: 40px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      width: 100%;
-      max-width: 400px;
-    }
-
-    .login-container h1 {
-      font-size: 2rem;
-      color: #333333;
-      margin-bottom: 20px;
-    }
-
-    .login-container input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #cccccc;
-      border-radius: 5px;
-      font-size: 1rem;
-    }
-
-    .login-container button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 5px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    .login-container button.login {
-      background-color: #007bff;
-      color: #ffffff;
-    }
-
-    .login-container button.login:hover {
-      background-color: #0056b3;
-    }
-
-    .login-container button.register {
-      background-color: #28a745;
-      color: #ffffff;
-    }
-
-    .login-container button.register:hover {
-      background-color: #218838;
-    }
-
-    .error-message {
-      color: #ff0000;
-      font-size: 0.9rem;
-      margin-top: 10px;
-      display: none;
-    }
-  </style>
 </head>
 <body>
+ <div class="wrapper">
   <div class="login-container">
-    <h1>Svijetovi znanja</h1>
-    <input type="text" id="username" placeholder="Username" required>
-    <input type="password" id="password" placeholder="Password" required>
+    <h1>Svjetovi znanja</h1>
+    <input type="text" id="username" placeholder="Korisničko ime" required>
+    <input type="password" id="password" placeholder="Lozinka" required>
     <div class="error-message" id="error-message">Netočni pristupni podaci</div>
-    <button class="login" onclick="login()">Login</button>
-    <button class="register" onclick="window.location.href='http://localhost:5000/teacher_registration.html'">Register</button>
+    <button class="login" onclick="login()">Prijava</button>
+    <button class="register" onclick="window.location.href='/teacher_registration.html'">Registracija</button>
   </div>
+ </div>
 
   <script>
     async function login() {
@@ -100,7 +31,7 @@
 
       // Send data to the backend
       try {
-        const response = await fetch('http://localhost:5000/login', {
+        const response = await fetch('/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -116,10 +47,10 @@
         if (response.ok) {
           if (data.permission === 200) {
             // Redirect to teacher_main.html with the username as a query parameter
-            window.location.href = `http://localhost:5000/teacher_main.html?username=${username}`;
+            window.location.href = `/teacher_main.html?username=${username}`;
           } else {
             // Redirect to index.html for non-teachers
-            window.location.href = 'http://localhost:5000/index.html';
+            window.location.href = '/index.html';
           }
         } else {
           errorMessage.style.display = 'block';

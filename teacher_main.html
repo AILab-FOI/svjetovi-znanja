@@ -1,125 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Svjetovi znanja - Nastavnički portal</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #f0f0f0;
-      font-family: Arial, sans-serif;
-    }
-
-    .portal-container {
-      background-color: #ffffff;
-      padding: 40px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      width: 100%;
-      max-width: 600px;
-    }
-
-    .portal-container h1 {
-      font-size: 2rem;
-      color: #333333;
-      margin-bottom: 20px;
-    }
-
-    .folder-structure {
-      text-align: left;
-      margin-bottom: 20px;
-    }
-
-    .folder-structure ul {
-      list-style-type: none;
-      padding: 0;
-    }
-
-    .folder-structure li {
-      margin: 5px 0;
-    }
-
-    .folder-structure button {
-      margin-left: 10px;
-      background-color: #ff0000;
-      color: #ffffff;
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
-    }
-
-    .portal-container input[type="file"] {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #cccccc;
-      border-radius: 5px;
-      font-size: 1rem;
-    }
-
-    .portal-container select {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #cccccc;
-      border-radius: 5px;
-      font-size: 1rem;
-    }
-
-    .portal-container button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 5px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    .portal-container button.save {
-      background-color: #007bff;
-      color: #ffffff;
-    }
-
-    .portal-container button.save:hover {
-      background-color: #0056b3;
-    }
-
-    .portal-container button.generate-links {
-      background-color: #28a745;
-      color: #ffffff;
-    }
-
-    .portal-container button.generate-links:hover {
-      background-color: #218838;
-    }
-
-    .links-container {
-      margin-top: 20px;
-      text-align: left;
-    }
-
-    .links-container a {
-      display: block;
-      margin: 10px 0;
-      color: #007bff;
-      text-decoration: none;
-    }
-
-    .links-container a:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <link rel="stylesheet" href="svjetovi.css">
 </head>
 <body onload="fetchFolderStructure()">
+ <div class="wrapper">
   <div class="portal-container">
     <h1>Nastavnički portal - <span id="username"></span></h1>
 
@@ -132,7 +20,9 @@
     </div>
 
     <!-- File Upload -->
+    <label for="file-upload">Odaberi dokument (PDF, DOC, DOCX ili TXT)</label>
     <input type="file" id="file-upload" accept=".pdf,.doc,.docx,.txt">
+    <label for="dropdown">Odaberi znanstvenika</label>
     <select id="dropdown">
       <option value="Naesala">Naesala</option>
       <option value="Haryk">Haryk</option>
@@ -142,11 +32,12 @@
     <button class="save" onclick="uploadFile()">Save</button>
 
     <!-- Generate Links -->
-    <button class="generate-links" onclick="generateLinks()">Generate Links</button>
+    <button class="generate-links" onclick="generateLinks()">Generiraj poveznice za učenike</button>
     <div class="links-container" id="links-container">
       <!-- Links will appear here -->
     </div>
   </div>
+ </div>
 
   <script>
     // Extract the username from the URL query parameter
@@ -157,21 +48,42 @@
     // Function to fetch and display folder structure
     async function fetchFolderStructure() {
       try {
-        const response = await fetch(`http://localhost:5000/folder-structure?username=${username}`);
+        const response = await fetch(`/folder-structure?username=${username}`);
         const data = await response.json();
 
         const folderList = document.getElementById('folder-structure-list');
         folderList.innerHTML = ''; // Clear existing list
 
-        data.files.forEach(file => {
-          const li = document.createElement('li');
-          li.textContent = file;
-          const deleteButton = document.createElement('button');
-          deleteButton.textContent = 'Delete';
-          deleteButton.onclick = () => deleteFile(file);
-          li.appendChild(deleteButton);
-          folderList.appendChild(li);
+        Object.entries(data.files).forEach(([name, files]) => {
+          // Add image and header
+          const img = document.createElement('img');
+          img.src = `${name}.png`;
+          img.alt = name;
+
+          const header = document.createElement('h2');
+          header.textContent = name;
+
+          folderList.appendChild(img);
+          folderList.appendChild(header);
+
+          // Create a list for the files
+          const ul = document.createElement('ul');
+
+          files.forEach(file => {
+            const li = document.createElement('li');
+            li.textContent = file;
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.onclick = () => deleteFile(`${name}/${file}`);
+
+            li.appendChild(deleteButton);
+            ul.appendChild(li);
+          });
+
+          folderList.appendChild(ul);
         });
+
       } catch (error) {
         console.error(error);
       }
@@ -180,7 +92,7 @@
     // Function to delete a file
     async function deleteFile(filename) {
       try {
-        const response = await fetch('http://localhost:5000/delete-file', {
+        const response = await fetch('/delete-file', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -194,14 +106,14 @@
         const data = await response.json();
 
         if (response.ok) {
-          alert('File deleted successfully!');
+          alert('Datoteka uspješno obrisana!');
           fetchFolderStructure(); // Refresh folder structure
         } else {
-          alert('File deletion failed: ' + data.message);
+          alert('Pogreška pri brisanju datoteke: ' + data.message);
         }
       } catch (error) {
         console.error(error);
-        alert('An error occurred while deleting the file.');
+        alert('Pogreška pri brisanju datoteke.');
       }
     }
 
@@ -210,20 +122,20 @@
       const fileInput = document.getElementById('file-upload');
       const dropdown = document.getElementById('dropdown');
       const file = fileInput.files[0];
-      const folder = dropdown.value;
+      const scientist = dropdown.value;
 
       if (!file) {
-        alert('Please select a file to upload.');
+        alert('Molimo odaberite datoteku.');
         return;
       }
 
       const formData = new FormData();
       formData.append('file', file);
       formData.append('username', username);
-      formData.append('folder', folder);
+      formData.append('scientist', scientist);
 
       try {
-        const response = await fetch('http://localhost:5000/upload', {
+        const response = await fetch('/upload', {
           method: 'POST',
           body: formData,
         });
@@ -231,14 +143,14 @@
         const data = await response.json();
 
         if (response.ok) {
-          alert('File uploaded successfully!');
+          alert('Datoteka uspješno spremljena!');
           fetchFolderStructure(); // Refresh folder structure
         } else {
-          alert('File upload failed: ' + data.message);
+          alert('Pogreška pri spremanju datoteke: ' + data.message);
         }
       } catch (error) {
         console.error(error);
-        alert('An error occurred while uploading the file.');
+        alert('Pogreška pri spremanju datoteke.');
       }
     }
 
@@ -248,13 +160,13 @@
       linksContainer.innerHTML = ''; // Clear existing links
 
       const link1 = document.createElement('a');
-      link1.href = 'http://localhost:5000/student_registration.html';
-      link1.textContent = 'Registracija - http://localhost:5000/student_registration.html';
+      link1.href = `/student_registration.html?teacher=${username}`;
+      link1.textContent = 'Registracija - ' + location.protocol + '//' + location.host + '/student_registration.html' + `?teacher=${username}`;
       linksContainer.appendChild(link1);
 
       const link2 = document.createElement('a');
-      link2.href = 'http://localhost:5000/index.html';
-      link2.textContent = 'Igra - http://localhost:5000/index.html';
+      link2.href = '/index.html';
+      link2.textContent = 'Igra - ' + location.protocol + '//' + location.host + '/index.html';
       linksContainer.appendChild(link2);
     }
 

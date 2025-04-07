@@ -84,9 +84,9 @@ function LoginForm() {
     '<div>'+
       '<div id="loginErrBox"></div>'+
       '<div>'+
-        '<input type="text" id="inputUsername" placeholder="Korisničko ime">';
+        '<input type="text" id="inputUsername" placeholder="Korisničko ime" style="width: 360px">';
 
-    if(LoginForm.Parameters["allowAccountCreation"]) html = html + '<br><input type="password" id="inputPassword" placeholder="Lozinka">';
+    if(LoginForm.Parameters["allowAccountCreation"]) html = html + '<br><input type="password" id="inputPassword" placeholder="Lozinka" style="width: 360px">';
 
     html = html + '</div><br>'+
         '<button id="btnConnect">Prijava</button>'+
@@ -128,7 +128,7 @@ function LoginForm() {
 
     if (payload.username.length <= 0) return this.displayError("You must provide a username!");
     if(payload.username.includes(" ")) return this.displayError("Spaces are forbidden in username.");
-    if(!payload.username.match(/^(?=[a-zA-Z\s]{2,25}$)(?=[a-zA-Z\s])(?:([\w\s*?])\1?(?!\1))+$/)) return this.displayError("You can't have special characters in your username.");
+    if(!payload.username.match(/^[a-zA-Z0-9_\s]+$/)) return this.displayError("You can't have special characters in your username.");
 
      MMO_Core.socket.on("login_success", function(data){
       if (data.err) return that.displayError("Error : " + data.err);

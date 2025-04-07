@@ -68,8 +68,9 @@
     new: async function(agentName, initialPrompt) {
       const user = encodeURIComponent(currentPlayerName());
       const name = encodeURIComponent(agentName);
+      const teacher = MMO_Core_Player.Player.teacher;
 
-      const url = `${FoiServerUrl}/new/${user}/${name}`;
+      const url = `${FoiServerUrl}/new/${teacher}/${user}/${name}`;
       try {
         const response = await fetch(url, {
           method: "POST",
@@ -80,7 +81,7 @@
         if (data.status !== "success") {
           throw new Error(data.message || "Agent creation failed");
         }
-        console.log(`FOI: Created agent "${agentName}" for user "${user}".`);
+        console.log(`FOI: Created agent "${agentName}" for user "${user}" (teacher: "${teacher}").`);
       } catch (err) {
         console.error(`FOI: Error creating agent "${agentName}":`, err);
         throw err;
@@ -184,6 +185,7 @@
               faceImage: faceImage,
               faceIndex: faceIndex,
           };
+
             
           let prompt = args.slice(promptStartIndex).join(" ");
           prompt = prompt.replace(/^"(.*)"$/, '$1');

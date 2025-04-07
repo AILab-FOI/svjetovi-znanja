@@ -1,0 +1,160 @@
+/* svijetovi.css - Unified Theme Inspired by Floating Castle */
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #6d4db9, #bca9ff);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  justify-content: center;
+}
+
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Shared container styles */
+.login-container,
+.registration-container,
+.portal-container {
+  background-color: #e0ddee;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  width: 100%;
+  max-width: 600px;
+  border: 2px solid #a79bbd;
+}
+
+/* Headers */
+.login-container h1,
+.registration-container h1,
+.portal-container h1 {
+  font-size: 2rem;
+  color: #372c59;
+  margin-bottom: 20px;
+}
+
+/* Inputs & Selects */
+input[type="text"],
+input[type="password"],
+input[type="file"],
+input[type="email"],
+select {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #b9a8d0;
+  border-radius: 5px;
+  font-size: 1rem;
+  background-color: #f3edfc;
+  color: #372c59;
+}
+
+input::placeholder {
+  color: #7c6b9c;
+}
+
+/* Buttons - shared */
+button {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Specific buttons */
+button.login {
+  background-color: #3f3ff2;
+  color: #ffffff;
+}
+
+button.login:hover {
+  background-color: #2b2bc4;
+}
+
+button.register {
+  background-color: #ffd700;
+  color: #372c59;
+}
+
+button.register:hover {
+  background-color: #e6c200;
+}
+
+button.save {
+  background-color: #3f3ff2;
+  color: #ffffff;
+}
+
+button.save:hover {
+  background-color: #2b2bc4;
+}
+
+button.generate-links {
+  background-color: #28a745;
+  color: #ffffff;
+}
+
+button.generate-links:hover {
+  background-color: #218838;
+}
+
+.folder-structure {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.folder-structure ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.folder-structure li {
+  margin: 5px 0;
+}
+
+.folder-structure button {
+  margin-left: 10px;
+  background-color: #ff4d4d;
+  color: #ffffff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.links-container {
+  margin-top: 20px;
+  text-align: left;
+}
+
+.links-container a {
+  display: block;
+  margin: 10px 0;
+  color: #3f3ff2;
+  text-decoration: none;
+}
+
+.links-container a:hover {
+  text-decoration: underline;
+}
+
+.error-message {
+  color: #ff4d4d;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  display: none;
+}
+
