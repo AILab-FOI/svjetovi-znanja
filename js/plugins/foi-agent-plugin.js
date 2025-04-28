@@ -21,7 +21,7 @@
  *
  * Plugin Commands:
  *   foi_new_agent <agentName> "INITIAL_PROMPT"
- *   foi_query_agent <agentName> "PROMPT"
+ *   foi_query_agent <agentName> "PROMPT" [variable ID]
  *   foi_delete_agent <agentName>
  *
  * If you prefer JavaScript calls:
@@ -31,9 +31,10 @@
  *
  * Example usage in an Event:
  *   Plugin Command: foi_new_agent COOLPROF "You are a Python professor..."
- *   Plugin Command: foi_query_agent COOLPROF "What is a variable?"
  *   Plugin Command: foi_delete_agent COOLPROF
- * 
+ *   Plugin Command: foi_query_agent COOLPROF "What is a variable?"
+ * Or with storing the return value in a game variable
+ *   Plugin Command: foi_query_agent COOLPROF "What is a variable?" 11
  * For multiline or code blocks, just keep them in the prompt string. 
  * This works because we send them in POST JSON, not in the URL.
  * ============================================================================
@@ -197,40 +198,119 @@
     
       case "foi_query_agent": {
         if (args.length < 2) {
-          console.warn('Usage: foi_query_agent <agentName> "PROMPT"');
-          return;
+            console.warn('Usage: foi_query_agent <agentName> "PROMPT" [<variable_num>] [<answer_variable_num>]');
+            return;
         }
-        const agentName = args[0];
-        let prompt = args.slice(1).join(" ");
-        prompt = prompt.replace(/^"(.*)"$/, '$1');
 
-        if (prompt.includes("\\V")) {
-          var variableId = parseInt(prompt.match(/\d+/)[0]);
-          prompt = $gameVariables.value(variableId);
-        }
-    
-        // we can't block in MV; we just log the result or store it in a variable
-        window.foi_agent.ask(agentName, prompt)
-          .then(response => {
-            console.log(`[${agentName}] says: ${response}`);
+        const agentName = args.shift(); // First argument: agent name
 
-            let npcData = $gameSystem.foi_agents?.[agentName];
-            
-            if (npcData) {
-              $gameMessage.setFaceImage(npcData.faceImage, npcData.faceIndex);
-              $gameMessage.add(`\\c[4]${npcData.name}:\\c[0]`);
+        // Parse the prompt (supports quoted strings)
+        let prompt = '';
+        let quoteChar = null;
+
+        if (args[0].startsWith('"') || args[0].startsWith("'")) {
+            quoteChar = args[0][0];
+            while (args.length > 0) {
+                const part = args.shift();
+                prompt += (prompt ? ' ' : '') + part;
+                if (part.endsWith(quoteChar)) break;
             }
-            
-            let maxLineLength = 40;
-            let responseLines = wrapText(response, maxLineLength);
+            prompt = prompt.slice(1, -1); // Remove quotes
+        } else {
+            prompt = args.shift(); // Just one word
+        }
 
-            responseLines.forEach(line => {
-                $gameMessage.add(line);
+        // Check for optional variable numbers
+        let variableIdToStore = null;
+        let answerVariableId = null;
+
+        if (args.length > 0) {
+            const maybeVar = parseInt(args.shift(), 10);
+            if (!isNaN(maybeVar)) {
+                variableIdToStore = maybeVar;
+            }
+        }
+        if (args.length > 0) {
+            const maybeAnswerVar = parseInt(args.shift(), 10);
+            if (!isNaN(maybeAnswerVar)) {
+                answerVariableId = maybeAnswerVar;
+            }
+        }
+
+        // Replace embedded variable references (e.g., \V[1])
+        prompt = prompt.replace(/\\V\[(\d+)\]/g, (_, varId) => $gameVariables.value(Number(varId)));
+        console.log(prompt);
+
+        const interpreter = this; // << Save current interpreter (this) to control wait
+
+        interpreter.setWaitMode('foi_agent'); // Set to custom wait mode (blocking)
+
+        // Query the agent
+        window.foi_agent.ask(agentName, prompt)
+            .then(response => {
+                console.log(`[${agentName}] says: ${response}`);
+
+                if (variableIdToStore !== null) {
+                    $gameVariables.setValue(variableIdToStore, response);
+                }
+
+                const npcData = $gameSystem.foi_agents?.[agentName];
+                if (npcData) {
+                    $gameMessage.setFaceImage(npcData.faceImage, npcData.faceIndex);
+                    $gameMessage.add(`\\c[4]${npcData.name}:\\c[0]`);
+                }
+
+                const maxLineLength = 40;
+                const responseLines = wrapText(response, maxLineLength);
+
+                responseLines.forEach(line => {
+                    $gameMessage.add(line);
+                });
+
+                if (answerVariableId !== null) {
+                    const _foi_waitForMessage = function() {
+                        if ($gameMessage.isBusy()) {
+                            requestAnimationFrame(_foi_waitForMessage);
+                        } else {
+                            const inputInterpreter = new Game_Interpreter();
+                            inputInterpreter.pluginCommand('InputDialog', ['variableID', String(answerVariableId)]);
+                            inputInterpreter.pluginCommand('InputDialog', ['text', 'Tvoj odgovor:']);
+                            inputInterpreter.pluginCommand('InputDialog', ['open']);
+
+                            // Wait for the InputDialog to finish
+                            const _waitForInputDialogClose = function() {
+                                if (SceneManager._scene._inputDialog && SceneManager._scene._inputDialog._opened) {
+                                    requestAnimationFrame(_waitForInputDialogClose);
+                                } else {
+                                    interpreter.setWaitMode(''); // FINALLY unblock event!
+                                }
+                            };
+                            _waitForInputDialogClose();
+                        }
+                    };
+                    _foi_waitForMessage();
+                } else {
+                    const _waitForMessageClose = function() {
+                        if ($gameMessage.isBusy()) {
+                            requestAnimationFrame(_waitForMessageClose);
+                        } else {
+                            interpreter.setWaitMode(''); // Unblock after message finished
+                        }
+                    };
+                    _waitForMessageClose();
+                }
+
+            })
+            .catch(err => {
+                console.error("Failed to query agent:", err);
+                interpreter.setWaitMode(''); // On error also unblock
             });
-          })
-          .catch(err => console.error("Failed to query agent:", err));
+
         break;
-      }
+    }
+
+
+
 
       case "foi_delete_agent": {
         if (args.length < 1) {

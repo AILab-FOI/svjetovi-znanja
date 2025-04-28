@@ -145,6 +145,7 @@
         if (response.ok) {
           alert('Datoteka uspješno spremljena!');
           fetchFolderStructure(); // Refresh folder structure
+          location.reload();
         } else {
           alert('Pogreška pri spremanju datoteke: ' + data.message);
         }

@@ -263,7 +263,13 @@ def query_agent(username, agent_name):
         system_instruction = (
             "Odgovori na pitanje koristeći isključivo sljedeći kontekst iz dokumenata "
             f"koje je učitelj '{teacher}' priložio za agenta '{agent_name}'. "
-            "Ako odgovor nije sadržan u kontekstu, reci da ne znaš."
+            "Ako odgovor nije sadržan u kontekstu, reci da ne znaš, osim ako je "
+            "odgovor vezan uz kontekst, možeš ponuditi i odgovor temeljem drugih znanja."
+            "Ako te učenik pita što znaš ili o čemu znaš najviše daj kratki "
+            "sažetak konteksta na način da kažeš da je zadnji svitak koji si"
+            "proučio je [tema koja je opisana u kontekstu] jer ti si lik znanstvenika "
+            "u fantasy RPG igri. Nemoj spominjati riječ kontekst, nego samo govori "
+            "o svitku kao da je on opisao sve što je u kontekstu."
         )
 
         prompt_with_context = (
