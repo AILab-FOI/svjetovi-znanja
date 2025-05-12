@@ -33,8 +33,11 @@
  *   Plugin Command: foi_new_agent COOLPROF "You are a Python professor..."
  *   Plugin Command: foi_delete_agent COOLPROF
  *   Plugin Command: foi_query_agent COOLPROF "What is a variable?"
- * Or with storing the return value in a game variable
+ * Or with storing the return value in a game variable 11
  *   Plugin Command: foi_query_agent COOLPROF "What is a variable?" 11
+ * Or with storing the return value in a game variable 11 and ask the user for 
+ * an answer and store it in variable 3
+ *   Plugin Command: foi_query_agent COOLPROF "What is a variable?" 11 3
  * For multiline or code blocks, just keep them in the prompt string. 
  * This works because we send them in POST JSON, not in the URL.
  * ============================================================================
@@ -243,7 +246,7 @@
 
         const interpreter = this; // << Save current interpreter (this) to control wait
 
-        interpreter.setWaitMode('foi_agent'); // Set to custom wait mode (blocking)
+        interpreter.setWaitMode('message'); // Set to custom wait mode (blocking)
 
         // Query the agent
         window.foi_agent.ask(agentName, prompt)
@@ -269,6 +272,7 @@
 
                 if (answerVariableId !== null) {
                     const _foi_waitForMessage = function() {
+                    
                         if ($gameMessage.isBusy()) {
                             requestAnimationFrame(_foi_waitForMessage);
                         } else {
@@ -282,7 +286,8 @@
                                 if (SceneManager._scene._inputDialog && SceneManager._scene._inputDialog._opened) {
                                     requestAnimationFrame(_waitForInputDialogClose);
                                 } else {
-                                    interpreter.setWaitMode(''); // FINALLY unblock event!
+                                    console.log( 'input unblock' );
+                                    interpreter.setWaitMode(''); // unblock event!
                                 }
                             };
                             _waitForInputDialogClose();
@@ -294,6 +299,7 @@
                         if ($gameMessage.isBusy()) {
                             requestAnimationFrame(_waitForMessageClose);
                         } else {
+                            console.log( 'message unblock' );
                             interpreter.setWaitMode(''); // Unblock after message finished
                         }
                     };

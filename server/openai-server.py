@@ -261,10 +261,10 @@ def query_agent(username, agent_name):
 
         # 6. Call OpenAI with context and question
         system_instruction = (
-            "Odgovori na pitanje koristeći isključivo sljedeći kontekst iz dokumenata "
+            "Odgovori na pitanje koristeći sljedeći kontekst iz dokumenata "
             f"koje je učitelj '{teacher}' priložio za agenta '{agent_name}'. "
-            "Ako odgovor nije sadržan u kontekstu, reci da ne znaš, osim ako je "
-            "odgovor vezan uz kontekst, možeš ponuditi i odgovor temeljem drugih znanja."
+            "Ako pitanje nije vezan uz kontekst, reci da ne znaš, a ako je "
+            "pitanje vezano uz kontekst, možeš ponuditi i odgovor temeljem drugih znanja."
             "Ako te učenik pita što znaš ili o čemu znaš najviše daj kratki "
             "sažetak konteksta na način da kažeš da je zadnji svitak koji si"
             "proučio je [tema koja je opisana u kontekstu] jer ti si lik znanstvenika "
