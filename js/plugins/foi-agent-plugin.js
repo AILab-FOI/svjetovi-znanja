@@ -256,54 +256,57 @@
                 if (variableIdToStore !== null) {
                     $gameVariables.setValue(variableIdToStore, response);
                 }
+                
+                if( !response.trim().startsWith('{') ){ // Check if the answer is a JSON object
 
-                const npcData = $gameSystem.foi_agents?.[agentName];
-                if (npcData) {
-                    $gameMessage.setFaceImage(npcData.faceImage, npcData.faceIndex);
-                    $gameMessage.add(`\\c[4]${npcData.name}:\\c[0]`);
-                }
+                    const npcData = $gameSystem.foi_agents?.[agentName];
+                    if (npcData) {
+                        $gameMessage.setFaceImage(npcData.faceImage, npcData.faceIndex);
+                        $gameMessage.add(`\\c[4]${npcData.name}:\\c[0]`);
+                    }
 
-                const maxLineLength = 40;
-                const responseLines = wrapText(response, maxLineLength);
+                    const maxLineLength = 40;
+                    const responseLines = wrapText(response, maxLineLength);
 
-                responseLines.forEach(line => {
-                    $gameMessage.add(line);
-                });
+                    responseLines.forEach(line => {
+                        $gameMessage.add(line);
+                    });
 
-                if (answerVariableId !== null) {
-                    const _foi_waitForMessage = function() {
-                    
-                        if ($gameMessage.isBusy()) {
-                            requestAnimationFrame(_foi_waitForMessage);
-                        } else {
-                            const inputInterpreter = new Game_Interpreter();
-                            inputInterpreter.pluginCommand('InputDialog', ['variableID', String(answerVariableId)]);
-                            inputInterpreter.pluginCommand('InputDialog', ['text', 'Tvoj odgovor:']);
-                            inputInterpreter.pluginCommand('InputDialog', ['open']);
+                    if (answerVariableId !== null) {
+                        const _foi_waitForMessage = function() {
+                        
+                            if ($gameMessage.isBusy()) {
+                                requestAnimationFrame(_foi_waitForMessage);
+                            } else {
+                                const inputInterpreter = new Game_Interpreter();
+                                inputInterpreter.pluginCommand('InputDialog', ['variableID', String(answerVariableId)]);
+                                inputInterpreter.pluginCommand('InputDialog', ['text', 'Tvoj odgovor:']);
+                                inputInterpreter.pluginCommand('InputDialog', ['open']);
 
-                            // Wait for the InputDialog to finish
-                            const _waitForInputDialogClose = function() {
-                                if (SceneManager._scene._inputDialog && SceneManager._scene._inputDialog._opened) {
-                                    requestAnimationFrame(_waitForInputDialogClose);
-                                } else {
-                                    console.log( 'input unblock' );
-                                    interpreter.setWaitMode(''); // unblock event!
-                                }
-                            };
-                            _waitForInputDialogClose();
-                        }
-                    };
-                    _foi_waitForMessage();
-                } else {
-                    const _waitForMessageClose = function() {
-                        if ($gameMessage.isBusy()) {
-                            requestAnimationFrame(_waitForMessageClose);
-                        } else {
-                            console.log( 'message unblock' );
-                            interpreter.setWaitMode(''); // Unblock after message finished
-                        }
-                    };
-                    _waitForMessageClose();
+                                // Wait for the InputDialog to finish
+                                const _waitForInputDialogClose = function() {
+                                    if (SceneManager._scene._inputDialog && SceneManager._scene._inputDialog._opened) {
+                                        requestAnimationFrame(_waitForInputDialogClose);
+                                    } else {
+                                        console.log( 'input unblock' );
+                                        interpreter.setWaitMode(''); // unblock event!
+                                    }
+                                };
+                                _waitForInputDialogClose();
+                            }
+                        };
+                        _foi_waitForMessage();
+                    } else {
+                        const _waitForMessageClose = function() {
+                            if ($gameMessage.isBusy()) {
+                                requestAnimationFrame(_waitForMessageClose);
+                            } else {
+                                console.log( 'message unblock' );
+                                interpreter.setWaitMode(''); // Unblock after message finished
+                            }
+                        };
+                        _waitForMessageClose();
+                    }
                 }
 
             })

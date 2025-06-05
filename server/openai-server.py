@@ -116,6 +116,7 @@ def store_document(text, teacher, agent_name):
             index_key = (teacher, agent_name)
             agent_document_indexes[index_key].add(np.array([embedding], dtype=np.float32))
             agent_doc_map[index_key].append(doc_id)
+            load_embeddings_from_database()
             return True
 
     return False
@@ -228,12 +229,15 @@ def query_agent(username, agent_name):
         index_key = (teacher, agent_name)
         if index_key not in agent_document_indexes:
             return jsonify({"status": "error", "response": "No documents found for this agent."}), 404
+            
+        
 
         faiss_index = agent_document_indexes[index_key]
         doc_ids = agent_doc_map[index_key]
 
         k = 5  # top-k chunks to use
         D, I = faiss_index.search(np.array([query_embedding], dtype=np.float32), k)
+        
         
         # Retrieve corresponding document texts from DB
         context_chunks = []
@@ -277,6 +281,8 @@ def query_agent(username, agent_name):
             f"Kontekst:\n{context}\n\n"
             f"Pitanje: {user_prompt}\n\nOdgovor:"
         )
+        
+        print( prompt_with_context )
 
         response = openai.chat.completions.create(
             model="gpt-4o-mini",  # You can adjust the model
@@ -424,27 +430,39 @@ def upload_file():
 
         # Save the file
         file.save(os.path.join(subfolder, file.filename))
+
         full_text = combine_scientist_documents(username, scientist)
+        
+        #print( "FULL TEXT:", full_text )
 
-        store_document(full_text, username, scientist)
+        result = store_document(full_text, username, scientist)
 
-        embedding = get_embedding(full_text)
+        if result:
+            
+        
 
-        if embedding:
-            # Delete old embedding
-            r.table(db_embedding_table).filter({
-                "teacher": username,
-                "scientist": scientist
-            }).delete().run(conn)
+            embedding = get_embedding(full_text)
 
-            # Insert new one
-            r.table(db_embedding_table).insert({
-                "teacher": username,
-                "scientist": scientist,
-                "embedding": embedding
-            }).run(conn)
+            if embedding:
+                # Delete old embedding
+                r.table(db_embedding_table).filter({
+                    "teacher": username,
+                    "scientist": scientist
+                }).delete().run(conn)
 
-        return jsonify(success=True, message='File uploaded successfully'), 200
+                # Insert new one
+                r.table(db_embedding_table).insert({
+                    "teacher": username,
+                    "scientist": scientist,
+                    "embedding": embedding
+                }).run(conn)
+            else:
+                return jsonify(success=False, message='Error while fetching embedding'), 400
+
+            return jsonify(success=True, message='File uploaded successfully'), 200
+        else:
+            os.remove(os.path.join(subfolder, file.filename))
+            return jsonify(success=False, message='Error while uploading document. Probably the document is to big. Try a smaller one.'), 400
     else:
         return jsonify(success=False, message='Invalid request'), 400
 
