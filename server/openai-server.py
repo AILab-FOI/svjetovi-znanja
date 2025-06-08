@@ -136,20 +136,6 @@ def setup_database():
     except Exception as e:
         print(f"Error setting up RethinkDB: {e}")
 
-# ----------------------------------------------------------------
-# Add a document to the document pool of an agent (POST)
-#    Endpoint: /new/<agent_name>
-#    JSON Body: { "text": <documentText> }
-# ---------------------------------------------------------------- 
-@app.route("/document/<path:agent_name>", methods=["POST"])
-def add_new_document(agent_name):
-    data = request.get_json(force=True)
-    text = data.get("text", "")
-    
-    if store_document(text, agent_name):
-        return jsonify({"status": "success", "response": "Successfully stored the document."}), 200
-    return jsonify({"status": "error", "response": "Error storing document."}), 500
-
 def handle_pdf(file):
     file_stream = BytesIO(file.read())
     doc = fitz.open(stream=file_stream, filetype="pdf")

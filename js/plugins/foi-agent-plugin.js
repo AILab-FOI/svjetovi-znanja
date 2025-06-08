@@ -151,6 +151,15 @@
     }
   };
 
+  // Custom wait mode to block interpreter until FOI interaction completes
+    const _Game_Interpreter_updateWaitMode = Game_Interpreter.prototype.updateWaitMode;
+    Game_Interpreter.prototype.updateWaitMode = function() {
+        if (this._waitMode === 'foi_agent_wait') {
+            return true; // keep waiting manually
+        }
+        return _Game_Interpreter_updateWaitMode.call(this);
+    };
+
   // --------------------------------------------------------------------------
   // 2) Plugin Commands for convenience
   //    foi_new_agent <agentName> "INITIAL_PROMPT" OR foi_new_agent <agentName> <imageName> <imageNumber> "INITIAL_PROMPT"');
@@ -318,6 +327,106 @@
         break;
     }
 
+    case "foi_ask_check_agent": {
+        if (args.length < 3) {
+            console.warn('Usage: foi_ask_check_agent <agentName> <answerVariableId> <checkResultVariableId>');
+            return;
+        }
+
+        const agentName = args[0];
+        const ansVarId = parseInt(args[1], 10);
+        const resultVarId = parseInt(args[2], 10);
+        const interpreter = this;
+
+        interpreter.setWaitMode('foi_agent_wait');
+
+        const askPrompt = "Postavi točno jedno pitanje iz svojeg konteksta. Pitanje mora biti takvo da ga je moguće odgovoriti u jednoj rečenici.";
+
+        window.foi_agent.ask(agentName, askPrompt).then(question => {
+            const npcData = $gameSystem.foi_agents?.[agentName];
+            if (npcData) {
+                $gameMessage.setFaceImage(npcData.faceImage, npcData.faceIndex);
+                $gameMessage.add(`\\c[4]${npcData.name}:\\c[0]`);
+            }
+
+            wrapText(question, 40).forEach(line => $gameMessage.add(line));
+
+            const waitForMessageClose = () => {
+                if ($gameMessage.isBusy()) {
+                    requestAnimationFrame(waitForMessageClose);
+                } else {
+                    $gameVariables.setValue(ansVarId, '1234567890po');
+
+                    const inputInterpreter = new Game_Interpreter();
+                    inputInterpreter.pluginCommand('InputDialog', ['variableID', String(ansVarId)]);
+                    inputInterpreter.pluginCommand('InputDialog', ['text', 'Tvoj odgovor:']);
+                    inputInterpreter.pluginCommand('InputDialog', ['open']);
+
+                    const waitForAnswerChange = () => {
+                        const answer = $gameVariables.value(ansVarId);
+                        if (answer === '1234567890po') {
+                            console.log('waiting 1');
+                            requestAnimationFrame(waitForAnswerChange);
+                        } else {
+                            const checkPrompt =
+                                `Postavio si sljedeće pitanje učeniku: ${question}. ` +
+                                `On je odgovorio: ${answer}. ` +
+                                `Obzirom na svoj kontekst provjeri je li odgovor točan ili netočan. ` +
+                                `Odgovor treba biti JSON objekt koji se sastoji od dva atributa: answer i feedback. ` +
+                                `Ako je odgovor točan, u answer atribut upiši TOČNO, ako je netočan upiši NETOČNO. ` +
+                                `U atribut feedback upiši objašnjenje obraćajući se učeniku. Osim JSON objekta nemoj ispisivati nikakav drugi tekst niti formatting kako bi se odgovor mogao parsirati.`;
+
+                            $gameVariables.setValue(resultVarId, '1234567890po');
+
+                            window.foi_agent.ask(agentName, checkPrompt).then(result => {
+                                try {
+                                    const parsed = JSON.parse(result);
+                                    const feedback = parsed.feedback || "Nema povratne informacije.";
+                                    const isCorrect = parsed.answer === "TOČNO";
+
+                                    $gameVariables.setValue(resultVarId, isCorrect);
+
+                                    wrapText(feedback, 40).forEach(line => $gameMessage.add(line));
+
+                                    const waitForFeedbackShown = () => {
+                                        if ($gameMessage.isBusy()) {
+                                            requestAnimationFrame(waitForFeedbackShown);
+                                        } else {
+                                            const current = $gameVariables.value(resultVarId);
+                                            if (current === '1234567890po') {
+                                                console.log('waiting 2');
+                                                requestAnimationFrame(waitForFeedbackShown);
+                                            } else {
+                                                interpreter.setWaitMode('');
+                                            }
+                                        }
+                                    };
+                                    waitForFeedbackShown();
+                                } catch (e) {
+                                    console.error("Failed to parse agent's JSON:", e, result);
+                                    $gameMessage.add("Greška: Agentov odgovor nije bio ispravan JSON.");
+                                    $gameVariables.setValue(resultVarId, false);
+                                    interpreter.setWaitMode('');
+                                }
+                            }).catch(err => {
+                                console.error("Error during check prompt:", err);
+                                $gameMessage.add("Greška u provjeri odgovora.");
+                                $gameVariables.setValue(resultVarId, false);
+                                interpreter.setWaitMode('');
+                            });
+                        }
+                    };
+                    waitForAnswerChange();
+                }
+            };
+            waitForMessageClose();
+        }).catch(err => {
+            console.error("Failed to get question from agent:", err);
+            interpreter.setWaitMode('');
+        });
+
+        break;
+    }
 
 
 
