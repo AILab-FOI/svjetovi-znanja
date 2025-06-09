@@ -17,7 +17,7 @@ var $plugins =
 {"name":"MMO_LoginForm","status":true,"description":"MMORPG Maker MV - Login Form","parameters":{"allowAccountCreation":"Yes"}},
 {"name":"MMO_Overhead","status":true,"description":"Add name over actors name","parameters":{}},
 {"name":"MMO_iavra_event_popup","status":true,"description":"Allows to display popups messages above events, which can be used for speech bubbles or on chests.\r\n<Iavra Event Popup>","parameters":{"Popup Width":"200","Offset X":"0","Offset Y":"0","Display Duration":"200","Fade In Duration":"10","Fade Out Duration":"60","Font Name":"","Font Size":"12","Line Height":"18","Retain On Scene":"Scene_Menu, Scene_Battle\r"}},
-{"name":"foi-agent-plugin","status":true,"description":"FOI Agent plugin (MMO version) - per-user server-side storage","parameters":{"FoiServerUrl":"http://localhost:5000"}},
+{"name":"foi-agent-plugin","status":true,"description":"FOI Agent plugin (POST version) - MMO-friendly","parameters":{"FoiServerUrl":"http://games.foi.hr:5000"}},
 {"name":"RS_InputDialog","status":true,"description":"This plugin allows you to display Text Edit Box on the screen. <RS_InputDialog>","parameters":{"textBox Width":"488","textBox Height":"36","variable ID":"3","debug":"false","Text Hint":"Please enter the value...","direction":"ltr","Max Length":"255","Style":"","CSS":"\"\"","Font Family":"GameFont","Button Name":"","Ok":"OK","Cancel":"Cancel","Position":"center"}},
 {"name":"MStablemenu","status":false,"description":"Custom Menu Call","parameters":{"Menu Map ID":"11","Original Map ID Variable":"98","Original X Coordinate Variable":"99","Original Y Coordinate Variable":"100","Exit Common Event ID":"12","Disabled Menu Maps":"1,2,3,4,5,6,7,8,9,10"}}
 ];
